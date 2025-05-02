@@ -5,6 +5,10 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using profile_api.domain;
 using profile_api.domain.Entities.User;
+using profile_api.domain.Helpers;
+using AutoMapper;
+using AutoMapper.Internal;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 namespace profile_api
 {
@@ -62,6 +66,25 @@ namespace profile_api
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddAutoMapper(typeof(Program));
+            builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+
+            builder.Services.AddSingleton(new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = builder.Configuration["Jwt:Issuer"],
+
+                ValidateAudience = true,
+                ValidAudience = builder.Configuration["Jwt:Audience"],
+
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+        builder.Configuration["Jwt:Key"])),
+
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            });
+
 
             var app = builder.Build();
 
@@ -75,6 +98,7 @@ namespace profile_api
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
+            app.UseAuthentication();
 
 
             app.MapControllers();
