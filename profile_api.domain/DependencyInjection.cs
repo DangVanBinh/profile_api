@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using profile_api.domain.Repositories.Interfaces;
+using profile_api.domain.Services;
+using profile_api.domain.Services.Interfaces;
 
 namespace profile_api.domain
 {
@@ -14,10 +17,10 @@ namespace profile_api.domain
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
         {
             // Đăng ký Services
-            //services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IAuthService, AuthService>();
 
             // Đăng ký Repositories
-            //services.AddScoped<IProductRepository, ProductRepository>();
+            
 
             // Đăng ký DbContext
             services.AddDbContext<ApplicationDbContext>(options =>
