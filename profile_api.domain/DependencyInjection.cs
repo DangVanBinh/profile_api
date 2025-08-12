@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using profile_api.domain.Handlers;
+using profile_api.domain.Repositories;
 using profile_api.domain.Repositories.Interfaces;
 using profile_api.domain.Services;
 using profile_api.domain.Services.Interfaces;
@@ -20,7 +22,8 @@ namespace profile_api.domain
             services.AddScoped<IAuthService, AuthService>();
 
             // Đăng ký Repositories
-            
+            services.AddScoped<ICategoryRepository,CategoryRepository>();
+            services.AddScoped<CategoryHandler>();
 
             // Đăng ký DbContext
             services.AddDbContext<ApplicationDbContext>(options =>
