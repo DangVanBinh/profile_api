@@ -12,6 +12,7 @@ using profile_api.domain.DTOs.Auth;
 using profile_api.domain.Entities.User;
 using profile_api.domain.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
+using profile_api.domain.DefaultInitializeData;
 
 
 namespace profile_api.domain.Services
@@ -73,16 +74,12 @@ namespace profile_api.domain.Services
                 throw new Exception("Email already exists.");
 
             var hasher = new PasswordHasher<AppUser>();
-            var user = new AppUser
-            {
-                UserName = request.UserName,
-                FullName = request.FullName,
-                Email = request.Email,
-            };
+            var user = _mapper.Map<AppUser>(request);
             var result = await _userManager.CreateAsync(user, request.Password);
-            if (!result.Succeeded)
-                throw new Exception("Đăng ký thất bại.");
-
+            if (result.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(user, ApplicationRoles.User);
+            }
             return await GenerateAuthResult(user);
         }
 
@@ -102,7 +99,7 @@ namespace profile_api.domain.Services
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddMinutes(15),
+                Expires = DateTime.UtcNow.AddHours(5),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
                 Issuer = _config["Jwt:Issuer"],
                 Audience = _config["Jwt:Audience"]
@@ -112,6 +109,7 @@ namespace profile_api.domain.Services
 
             // Bạn có thể tạo refresh token ngẫu nhiên & lưu vào DB
             var refreshToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+            //var refreshToken1 = tokenHandler.CanReadToken(refreshToken) ? refreshToken : Convert.ToBase64String(Guid.NewGuid().ToByteArray());
 
             return new AuthResult
             {

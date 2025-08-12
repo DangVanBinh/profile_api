@@ -5,22 +5,22 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using profile_api.domain;
 using profile_api.domain.Entities.User;
-using profile_api.domain.Helpers;
 using AutoMapper;
 using AutoMapper.Internal;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using profile_api.Mapper;
 
 namespace profile_api
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async  Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
 
-            builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
+            builder.Services.AddIdentity<AppUser, AppRole>(options =>
             {
                 // C?u hình password
                 options.Password.RequireDigit = true;
@@ -66,7 +66,6 @@ namespace profile_api
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            builder.Services.AddAutoMapper(typeof(Program));
             builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
             builder.Services.AddSingleton(new TokenValidationParameters
@@ -84,6 +83,7 @@ namespace profile_api
                 ValidateLifetime = true,
                 ClockSkew = TimeSpan.Zero
             });
+            builder.Services.AddAutoMapper(typeof(Program));
 
 
             var app = builder.Build();
@@ -99,7 +99,11 @@ namespace profile_api
 
             app.UseAuthorization();
             app.UseAuthentication();
-
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                await DbInitializer.SeedDatabaseAsync(app);
+            }
 
             app.MapControllers();
 
